@@ -1,0 +1,3 @@
+# Credits and permissions
+
+Unofficial fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company. Pokémon names and graphics retain their respective rights. Battle runtime imported from the user-supplied daily-red.com bundle; project owner confirmed author permission to publish on October 29, 2026. This statement does not relicense third-party material. Pokémon Showdown and @smogon/calc retain their embedded license notices. Runtime source: https://daily-red.com/. Sprite sources: PokeAPI/sprites and pret/pokefirered. Font licenses are retained alongside font assets. The MIT license covers original project code only.
