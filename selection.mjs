@@ -1,10 +1,10 @@
 // Bag-style navigation uses the existing settings controls and battle generation path.
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function mountSelectionMenus({content,image,attachFallbacks}){
+export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>{}}){
  const $=id=>document.getElementById(id), setup=document.querySelector('#options .setup'), fields=setup.querySelector('.fields');
  const pocket=document.createElement('div');pocket.className='bag-menu';
  pocket.innerHTML=`<aside class="bag-sidebar"><div class="bag-illustration" aria-hidden="true"><i></i></div><div class="bag-caption"><span id="bag-path">BATTLE BAG</span></div><p id="bag-help">Choose a pocket to prepare your next battle.</p></aside><div class="bag-window"><button id="bag-back" type="button" hidden>◀ BACK</button><div class="bag-pockets" role="tablist" aria-label="Battle menu" aria-orientation="vertical"><button id="pocket-opponents" role="tab" aria-controls="bag-opponents" aria-selected="false" tabindex="0">OPPONENTS</button><button id="pocket-party" role="tab" aria-controls="bag-party" aria-selected="false" tabindex="-1">POKéMON</button><button id="pocket-rules" role="tab" aria-controls="bag-rules" aria-selected="false" tabindex="-1">OPTION</button></div><div id="bag-commands"><button id="menu-dex" type="button">POKéDEX</button><button id="bag-exit" type="button">EXIT</button></div><div id="bag-opponents" role="tabpanel" aria-labelledby="pocket-opponents" hidden><p class="menu-help">Choose a trainer.</p><div class="trainer-tree"></div></div><div id="bag-party" role="tabpanel" aria-labelledby="pocket-party" hidden><p class="menu-help">Your current party.</p><div id="pool-options" class="pool-options"></div><button id="open-dex" class="dex-link" type="button">▸ OPEN POKéDEX</button><div id="party-fields" class="fields"></div></div><div id="bag-rules" role="tabpanel" aria-labelledby="pocket-rules" hidden><p class="menu-help">Set the date and challenge mode.</p><div id="rule-fields" class="fields"></div></div></div><p id="bag-selection" class="bag-selection" aria-live="polite"></p>`;
- setup.prepend(pocket);
+ const dialog=document.createElement('dialog');dialog.id='pocket-dialog';dialog.setAttribute('aria-label','Battle pockets');dialog.innerHTML='<button id="pocket-close" type="button">CLOSE ✕</button>';dialog.append(pocket);document.body.append(dialog);
  pocket.querySelector('.bag-pockets').prepend($('menu-dex'));
  for(const id of ['trainer','opponent','pool'])$(id).parentElement.hidden=true;
  $('party-fields').append($('party-policy').parentElement);
@@ -13,12 +13,28 @@ export function mountSelectionMenus({content,image,attachFallbacks}){
  for(const id of ['date','mode'])$('rule-fields').append($(id).parentElement);
  fields.hidden=true;
  const tabs=[...pocket.querySelectorAll('[role="tab"]')];
- const help={opponents:'Choose a trainer, then choose which team to battle.',party:'View your current party and choose its lead.',rules:'Choose your Pokémon pool, party selection rules, date, and mode.'};
- function activate(tab){for(const t of tabs){const active=t===tab;t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1;$(t.getAttribute('aria-controls')).hidden=!active;}pocket.querySelector('.bag-pockets').hidden=Boolean(tab);$('bag-commands').hidden=Boolean(tab);$('bag-back').hidden=!tab;$('bag-path').textContent=tab?tab.textContent:'BATTLE BAG';$('bag-help').textContent=tab?help[tab.id.replace('pocket-','')]:'Choose a pocket to prepare your next battle.';}
- tabs.forEach((t,i)=>{t.onclick=()=>{if(t.id==='pocket-party'){const first=$('party-preview').querySelector('button');if(!first){$('notice').textContent='Your party is still loading. Try again when it is ready.';return;}$('options').open=false;$('team').scrollIntoView({behavior:'smooth',block:'start'});first.focus({preventScroll:true});return;}activate(t);$('bag-back').focus();};t.onkeydown=e=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowDown'?1:-1)+tabs.length)%tabs.length;tabs.forEach((b,j)=>b.tabIndex=j===n?0:-1);tabs[n].focus();};});
- $('bag-back').onclick=()=>{const previous=tabs.find(t=>t.getAttribute('aria-selected')==='true')||tabs[0];activate(null);previous.tabIndex=0;previous.focus();};
- $('bag-exit').onclick=()=>{$('options').open=false;$('options').querySelector('summary').focus();};
- pocket.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if(!$('bag-back').hidden)$('bag-back').click();else $('bag-exit').click();}});
+ const help={opponents:'Your opponent’s current party and matchup hints.',party:'Your current party. Choose a lead or switch during battle.',rules:'Choose your opponent, pool, party rules, date, and mode.'};
+ let page=null;
+ function activate(tab){page=tab?.id.replace('pocket-','')??null;for(const t of tabs){const active=t===tab;t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1;$(t.getAttribute('aria-controls')).hidden=!active;}$('pokedex').hidden=true;pocket.querySelector('.bag-pockets').hidden=Boolean(tab);$('bag-commands').hidden=Boolean(tab);$('bag-back').hidden=!tab;dialog.dataset.expanded=String(Boolean(tab));$('bag-path').textContent=tab?tab.textContent:'BATTLE BAG';$('bag-help').textContent=tab?help[page]:'Choose a pocket.';onPocket(page);}
+ function open(name){if(!dialog.open)dialog.showModal();activate(name?$('pocket-'+name):null);(name?$('bag-back'):$('menu-dex')).focus();}
+ function close(){if(dialog.open)dialog.close();page=null;onPocket(null);}
+ tabs.forEach(t=>t.onclick=()=>open(t.id.replace('pocket-','')));
+ pocket.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key)||pocket.querySelector('.bag-pockets').hidden)return;const buttons=[...pocket.querySelectorAll('.bag-pockets button,#bag-commands button')];const i=buttons.indexOf(document.activeElement);if(i<0)return;e.preventDefault();e.stopPropagation();const n=e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[n].focus();},true);
+ $('bag-back').onclick=()=>{const previous=page==='dex'?$('menu-dex'):tabs.find(t=>t.id==='pocket-'+page)||tabs[0];activate(null);previous.tabIndex=0;previous.focus();};
+ $('bag-exit').onclick=close;$('pocket-close').onclick=close;
+ dialog.addEventListener('cancel',e=>{e.preventDefault();page?$('bag-back').click():close();});
+ $('options').querySelector('summary').onclick=e=>{e.preventDefault();open();};
+ // Keep all detailed information inside the closed-by-default pockets.
+ $('bag-rules').prepend(pocket.querySelector('.trainer-tree'));
+ $('bag-rules').append($('hero-description'),$('bag-selection'),$('challenge-note'),$('generate'),$('how'),$('faq'));
+ const previewEnemy=$('enemy-preview').closest('details');previewEnemy.open=true;
+ const previewInfo=document.createElement('div');previewInfo.className='preview-opponent-info';previewInfo.append($('opponent-title').parentElement,previewEnemy,$('preview-matchups'));$('bag-opponents').replaceChildren(previewInfo);
+ $('preview-matchups').open=true;
+ const liveEnemy=$('enemy-party').closest('details');liveEnemy.open=true;
+ const liveInfo=document.createElement('div');liveInfo.className='live-opponent-info';$('battle-matchups').open=true;liveInfo.append(liveEnemy,$('battle-matchups'));$('bag-opponents').append(liveInfo);
+ $('bag-rules').append(document.querySelector('.text-speed'),document.querySelector('.setup-actions'));liveInfo.append(document.querySelector('.log-panel'));
+ $('bag-party').append(document.querySelector('.lead-strip'),$('party-verification'),$('preview'),$('switch-panel'));
+ $('profile-size').hidden=true;
  const tree=pocket.querySelector('.trainer-tree');
  for(const trainer of [...new Set(content.opponents.map(p=>p.trainer))]){
   const profiles=content.opponents.filter(p=>p.trainer===trainer),d=document.createElement('details');d.dataset.trainer=trainer;
@@ -29,7 +45,7 @@ export function mountSelectionMenus({content,image,attachFallbacks}){
  const labels={natural:['NATIONAL','214 species · all builds'],primary:['PREFERRED','214 species · preferred builds'],official:['ORIGINAL','30 species · Daily Red builds']};
  $('pool-options').innerHTML=[...$('pool').options].map(o=>`<button type="button" data-pool="${o.value}" aria-pressed="false"><strong>${labels[o.value][0]}</strong><small>${labels[o.value][1]}</small></button>`).join('');
  $('pool-options').onclick=e=>{const b=e.target.closest('[data-pool]');if(!b||$('pool').disabled)return;$('pool').value=b.dataset.pool;$('pool').dispatchEvent(new Event('change'));sync();renderDex();};
- const dex=$('pokedex');dex.innerHTML=`<div class="dex-heading"><h2>POKéDEX</h2><span id="dex-count"></span><button id="close-dex" type="button">CLOSE ✕</button></div><div class="dex-tools"><label>Search<input id="dex-search" type="search" placeholder="Name or No." autocomplete="off"></label><label>Region<select id="dex-region"><option value="all">All regions</option><option value="1">Kanto</option><option value="2">Johto</option><option value="3">Hoenn</option></select></label><label>Type<select id="dex-type"><option value="all">All types</option>${[...new Set(content.species.flatMap(s=>s.variants[0].types))].sort().map(t=>`<option>${esc(t)}</option>`).join('')}</select></label></div><div class="dex-layout"><div id="dex-list" class="dex-list" role="group" aria-label="Pokémon list"></div><article id="dex-entry" class="dex-entry" aria-label="Pokémon entry"></article></div><p class="dex-foot">Browse the current pool. Parties are drawn at random from these Pokémon.</p>`;
+ const dex=$('pokedex');pocket.querySelector('.bag-window').append(dex);dex.innerHTML=`<div class="dex-heading"><h2>POKéDEX</h2><span id="dex-count"></span><button id="close-dex" type="button">CLOSE ✕</button></div><div class="dex-tools"><label>Search<input id="dex-search" type="search" placeholder="Name or No." autocomplete="off"></label><label>Region<select id="dex-region"><option value="all">All regions</option><option value="1">Kanto</option><option value="2">Johto</option><option value="3">Hoenn</option></select></label><label>Type<select id="dex-type"><option value="all">All types</option>${[...new Set(content.species.flatMap(s=>s.variants[0].types))].sort().map(t=>`<option>${esc(t)}</option>`).join('')}</select></label></div><div class="dex-layout"><div id="dex-list" class="dex-list" role="group" aria-label="Pokémon list"></div><article id="dex-entry" class="dex-entry" aria-label="Pokémon entry"></article></div><p class="dex-foot">Browse the current pool. Parties are drawn at random from these Pokémon.</p>`;
  let selectedDex=null,selectedBuild=0,visible=[];
  function poolEntries(){if($('pool').value==='official')return content.originalPool.map(p=>({name:p.name,dexno:p.dexno,variants:[p]}));return content.species.map(s=>({...s,variants:$('pool').value==='primary'?[s.variants.find(v=>v.id===s.primaryId)||s.variants[0]]:s.variants}));}
  function renderDex(){if(dex.hidden)return;const q=$('dex-search').value.trim().toLowerCase(),region=$('dex-region').value,type=$('dex-type').value;
@@ -42,9 +58,10 @@ export function mountSelectionMenus({content,image,attachFallbacks}){
  $('dex-list').onkeydown=e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;const rows=[...$('dex-list').querySelectorAll('button')];if(!rows.length)return;e.preventDefault();const i=rows.indexOf(e.target),n=e.key==='Home'?0:e.key==='End'?rows.length-1:(Math.max(0,i)+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;rows[n].focus();rows[n].click();};
  $('dex-list').onclick=e=>{const b=e.target.closest('[data-dex]');if(!b)return;selectedDex=Number(b.dataset.dex);selectedBuild=0;for(const row of $('dex-list').querySelectorAll('button'))row.setAttribute('aria-pressed',String(row===b));renderEntry();};
  for(const id of ['dex-search','dex-region','dex-type'])$(id).addEventListener(id==='dex-search'?'input':'change',renderDex);
- $('open-dex').onclick=()=>{dex.hidden=false;renderDex();dex.scrollIntoView({behavior:'smooth',block:'start'});$('dex-search').focus({preventScroll:true});};
+ $('open-dex').onclick=()=>{if(!dialog.open)dialog.showModal();activate(null);page='dex';pocket.querySelector('.bag-pockets').hidden=true;$('bag-commands').hidden=true;$('bag-back').hidden=false;dialog.dataset.expanded='true';$('bag-path').textContent='POKéDEX';$('bag-help').textContent='Browse the Pokémon in the selected pool.';dex.hidden=false;renderDex();$('dex-search').focus();};
  $('menu-dex').onclick=()=>{$('open-dex').click();};
- $('close-dex').onclick=()=>{dex.hidden=true;activate(null);$('options').open=true;$('menu-dex').focus();};
+ $('close-dex').onclick=()=>{activate(null);$('menu-dex').focus();};
  function sync(){const current=content.opponents.find(p=>p.id===$('opponent').value);for(const b of tree.querySelectorAll('button')){b.disabled=$('opponent').disabled;b.setAttribute('aria-pressed',String(b.dataset.profile===current?.id));}for(const d of tree.querySelectorAll('details'))if(d.dataset.trainer===current?.trainer)d.open=true;for(const b of $('pool-options').querySelectorAll('button')){b.disabled=$('pool').disabled;b.setAttribute('aria-pressed',String(b.dataset.pool===$('pool').value));}$('bag-selection').textContent=`${current?.trainer||''} / ${current?.label||''} · ${labels[$('pool').value][0]}`;}
  for(const id of ['trainer','opponent','pool']){$(id).addEventListener('change',sync);new MutationObserver(sync).observe($(id),{attributes:true,attributeFilter:['disabled']});}sync();
+ return {open,close,isOpen:()=>dialog.open};
 }
