@@ -14,7 +14,7 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  $('party-fields').append($('party-policy').parentElement);
  $('bag-rules').prepend($('pool-options'),$('party-fields'));
  $('open-dex').hidden=true;$('bag-rules').append($('open-dex'));$('bag-party').replaceChildren();
- for(const id of ['date','mode'])$('rule-fields').append($(id).parentElement);
+ for(const id of ['battle-format','tournament-length','date','mode'])$('rule-fields').append($(id).parentElement);
  fields.hidden=true;
  const tabs=[...pocket.querySelectorAll('[role="tab"]')];
  const help={custom:'Build your own party.',items:'No items yet.',opponents:'Your opponent’s current party and matchup hints.',party:'Your current party. Choose a lead or switch during battle.',rules:'Choose your opponent, pool, party rules, date, and mode.'};
