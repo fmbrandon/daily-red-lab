@@ -75,3 +75,11 @@ body.in-battle #pocket-dialog .preview-opponent-info{display:none!important}#poc
 body:not(.in-battle) #option-battle{display:none!important}#pocket-dialog #bag-rules>#party-verification{display:none!important}
 @media(max-width:650px){#pocket-dialog .option-group{padding:8px 10px}#pocket-dialog .option-group label{grid-template-columns:1fr;gap:4px;font-size:17px}#pocket-dialog .option-group .text-speed{flex-wrap:wrap}}
 #pocket-dialog .option-sections{gap:10px}#pocket-dialog .option-group{padding:8px 12px}#pocket-dialog .option-group label{color:#445b60;font-weight:400;padding:5px 0}#pocket-dialog .option-group select,#pocket-dialog .option-group input{border-radius:0;padding:5px}#pocket-dialog .option-group .text-speed>span{display:none}
+/* The opposing roster is a permanent section, never a disclosure. */
+#pocket-dialog .enemy-roster .party-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+#pocket-dialog .enemy-roster .party-card{grid-template-columns:50px minmax(0,1fr);gap:2px 8px;padding:9px;align-content:start}
+#pocket-dialog .enemy-roster .party-card img{width:50px;height:50px}#pocket-dialog .enemy-roster .party-card strong{font-size:20px}#pocket-dialog .enemy-roster .party-card small{font-size:14px;line-height:1.25}#pocket-dialog .enemy-roster .party-card .moves-list{grid-column:1/-1;margin-top:4px;padding-top:5px;border-top:1px solid #c4d1bf}#pocket-dialog .enemy-roster .party-card.selected{border-color:#4e8b8a;background:#deeddf}
+#pocket-dialog .preview-opponent-info>.section-heading{margin:0 0 10px;border-bottom:3px double #82978f;padding-bottom:8px}#pocket-dialog .preview-opponent-info h2,#pocket-dialog .enemy-roster h2{font:23px Pixelify,monospace;color:#364e59;margin:0 0 10px}
+#pocket-dialog .enemy-roster .party-vitals{flex-wrap:wrap;margin:2px 0;font-size:14px;gap:4px}#pocket-dialog .enemy-roster .party-hp-track{width:60px}
+@media(max-width:650px){#pocket-dialog .enemy-roster .party-grid{grid-template-columns:1fr}}
+#pocket-dialog .enemy-roster .party-card img{margin:0}#pocket-dialog .enemy-roster .party-card strong{line-height:1.2}#pocket-dialog .enemy-roster .party-card small{margin:0!important}#pocket-dialog .enemy-roster .party-card .moves-list{padding-top:4px;margin-top:3px!important}#pocket-dialog .enemy-roster .party-vitals{margin:0}
