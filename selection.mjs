@@ -29,7 +29,7 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  $('options').querySelector('summary').onclick=e=>{e.preventDefault();open();};
  // Keep all detailed information inside the closed-by-default pockets.
  $('bag-rules').prepend(pocket.querySelector('.trainer-tree'));
- $('bag-rules').append($('hero-description'),$('bag-selection'),$('challenge-note'),$('generate'),$('how'),$('faq'));
+ $('bag-rules').append($('hero-description'),$('bag-selection'),$('challenge-note'),$('generate'));
  const previewEnemy=$('enemy-preview').closest('details');previewEnemy.open=true;
  const previewInfo=document.createElement('div');previewInfo.className='preview-opponent-info';previewInfo.append($('opponent-title').parentElement,previewEnemy,$('preview-matchups'));$('bag-opponents').replaceChildren(previewInfo);
  $('preview-matchups').open=true;
@@ -38,6 +38,15 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  $('bag-rules').append(document.querySelector('.text-speed'),document.querySelector('.setup-actions'));liveInfo.append(document.querySelector('.log-panel'));
  $('bag-rules').append(document.querySelector('.lead-strip'),$('party-verification'));$('bag-party').append($('preview'),$('switch-panel'));$('preview').append($('team'));
  $('profile-size').hidden=true;
+ // Options uses the same compact framed rows as the other pocket pages.
+ const rules=$('bag-rules');
+ function optionGroup(title,id,nodes){const section=document.createElement('fieldset');section.className='option-group';section.id=id;const legend=document.createElement('legend');legend.textContent=title;section.append(legend,...nodes);rules.append(section);return section;}
+ const opponentControls=['trainer','opponent'].map(id=>{const label=$(id).parentElement;label.hidden=false;return label;});
+ const poolLabel=$('pool').parentElement;poolLabel.hidden=false;
+ const controls=document.createElement('div');controls.className='option-sections';rules.append(controls);
+ controls.append(optionGroup('Opponent','option-opponent',opponentControls),optionGroup('Party','option-party',[poolLabel,$('party-fields'),$('challenge-note')]),optionGroup('Challenge','option-challenge',[$('rule-fields'),$('generate')]),optionGroup('Text speed','option-speed',[document.querySelector('.text-speed')]),optionGroup('Battle','option-battle',[document.querySelector('.setup-actions')]));
+ for(const node of [...rules.children])if(node!==controls)node.hidden=true;
+
  const tree=pocket.querySelector('.trainer-tree');
  for(const trainer of [...new Set(content.opponents.map(p=>p.trainer))]){
   const profiles=content.opponents.filter(p=>p.trainer===trainer),d=document.createElement('details');d.dataset.trainer=trainer;
