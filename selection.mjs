@@ -30,10 +30,10 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  // Keep all detailed information inside the closed-by-default pockets.
  $('bag-rules').prepend(pocket.querySelector('.trainer-tree'));
  $('bag-rules').append($('hero-description'),$('bag-selection'),$('challenge-note'),$('generate'));
- const previewEnemy=$('enemy-preview').closest('details');previewEnemy.open=true;
+ const oldPreview=$('enemy-preview').closest('details'),previewEnemy=document.createElement('section');previewEnemy.className='enemy-details enemy-roster';previewEnemy.setAttribute('aria-label','Opposing party');previewEnemy.append($('enemy-preview'));oldPreview.remove();
  const previewInfo=document.createElement('div');previewInfo.className='preview-opponent-info';previewInfo.append($('opponent-title').parentElement,previewEnemy,$('preview-matchups'));$('bag-opponents').replaceChildren(previewInfo);
  $('preview-matchups').open=true;
- const liveEnemy=$('enemy-party').closest('details');liveEnemy.open=true;
+ const oldLive=$('enemy-party').closest('details'),liveEnemy=document.createElement('section');liveEnemy.className='enemy-details enemy-roster';const liveHeading=document.createElement('h2');liveHeading.id='enemy-summary';liveHeading.textContent='Opposing party';liveEnemy.append(liveHeading,$('enemy-party'));oldLive.remove();
  const liveInfo=document.createElement('div');liveInfo.className='live-opponent-info';$('battle-matchups').open=true;liveInfo.append(liveEnemy,$('battle-matchups'));$('bag-opponents').append(liveInfo);
  $('bag-rules').append(document.querySelector('.text-speed'),document.querySelector('.setup-actions'));liveInfo.append(document.querySelector('.log-panel'));
  $('bag-rules').append(document.querySelector('.lead-strip'),$('party-verification'));$('bag-party').append($('preview'),$('switch-panel'));$('preview').append($('team'));
