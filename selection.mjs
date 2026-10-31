@@ -5,6 +5,9 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  const pocket=document.createElement('div');pocket.className='bag-menu';
  pocket.innerHTML=`<aside class="bag-sidebar"><div class="bag-illustration" aria-hidden="true"><i></i></div><div class="bag-caption"><span id="bag-path">BATTLE BAG</span></div><p id="bag-help">Choose a pocket to prepare your next battle.</p></aside><div class="bag-window"><button id="bag-back" type="button" hidden>◀ BACK</button><div class="bag-pockets" role="tablist" aria-label="Battle menu" aria-orientation="vertical"><button id="pocket-opponents" role="tab" aria-controls="bag-opponents" aria-selected="false" tabindex="0">OPPONENTS</button><button id="pocket-party" role="tab" aria-controls="bag-party" aria-selected="false" tabindex="-1">POKéMON</button><button id="pocket-rules" role="tab" aria-controls="bag-rules" aria-selected="false" tabindex="-1">OPTION</button></div><div id="bag-commands"><button id="menu-dex" type="button">POKéDEX</button><button id="bag-exit" type="button">EXIT</button></div><div id="bag-opponents" role="tabpanel" aria-labelledby="pocket-opponents" hidden><p class="menu-help">Choose a trainer.</p><div class="trainer-tree"></div></div><div id="bag-party" role="tabpanel" aria-labelledby="pocket-party" hidden><p class="menu-help">Your current party.</p><div id="pool-options" class="pool-options"></div><button id="open-dex" class="dex-link" type="button">▸ OPEN POKéDEX</button><div id="party-fields" class="fields"></div></div><div id="bag-rules" role="tabpanel" aria-labelledby="pocket-rules" hidden><p class="menu-help">Set the date and challenge mode.</p><div id="rule-fields" class="fields"></div></div></div><p id="bag-selection" class="bag-selection" aria-live="polite"></p>`;
  const dialog=document.createElement('dialog');dialog.id='pocket-dialog';dialog.setAttribute('aria-label','Battle pockets');dialog.innerHTML='<button id="pocket-close" type="button">CLOSE ✕</button>';dialog.append(pocket);document.body.append(dialog);
+ const titlebar=document.createElement('div');titlebar.className='pocket-titlebar';
+ titlebar.append($('bag-back'),$('bag-path'),$('pocket-close'));dialog.prepend(titlebar);
+ $('bag-help').hidden=true;dialog.append($('bag-help'));pocket.querySelector('.bag-sidebar').remove();
  pocket.querySelector('.bag-pockets').prepend($('menu-dex'));
  for(const id of ['trainer','opponent','pool'])$(id).parentElement.hidden=true;
  $('party-fields').append($('party-policy').parentElement);
@@ -15,7 +18,7 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  const tabs=[...pocket.querySelectorAll('[role="tab"]')];
  const help={opponents:'Your opponent’s current party and matchup hints.',party:'Your current party. Choose a lead or switch during battle.',rules:'Choose your opponent, pool, party rules, date, and mode.'};
  let page=null;
- function activate(tab){page=tab?.id.replace('pocket-','')??null;for(const t of tabs){const active=t===tab;t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1;$(t.getAttribute('aria-controls')).hidden=!active;}$('pokedex').hidden=true;pocket.querySelector('.bag-pockets').hidden=Boolean(tab);$('bag-commands').hidden=Boolean(tab);$('bag-back').hidden=!tab;dialog.dataset.expanded=String(Boolean(tab));$('bag-path').textContent=tab?tab.textContent:'BATTLE BAG';$('bag-help').textContent=tab?help[page]:'Choose a pocket.';onPocket(page);}
+ function activate(tab){page=tab?.id.replace('pocket-','')??null;for(const t of tabs){const active=t===tab;t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1;$(t.getAttribute('aria-controls')).hidden=!active;}$('pokedex').hidden=true;pocket.querySelector('.bag-pockets').hidden=Boolean(tab);$('bag-commands').hidden=Boolean(tab);$('bag-back').hidden=!tab;dialog.dataset.expanded=String(Boolean(tab));$('bag-path').textContent=tab?tab.textContent:'MENU';$('bag-help').textContent=tab?help[page]:'Choose a pocket.';onPocket(page);}
  function open(name){if(!dialog.open)dialog.showModal();activate(name?$('pocket-'+name):null);(name?$('bag-back'):$('menu-dex')).focus();}
  function close(){if(dialog.open)dialog.close();page=null;onPocket(null);}
  tabs.forEach(t=>t.onclick=()=>open(t.id.replace('pocket-','')));
@@ -33,7 +36,7 @@ export function mountSelectionMenus({content,image,attachFallbacks,onPocket=()=>
  const liveEnemy=$('enemy-party').closest('details');liveEnemy.open=true;
  const liveInfo=document.createElement('div');liveInfo.className='live-opponent-info';$('battle-matchups').open=true;liveInfo.append(liveEnemy,$('battle-matchups'));$('bag-opponents').append(liveInfo);
  $('bag-rules').append(document.querySelector('.text-speed'),document.querySelector('.setup-actions'));liveInfo.append(document.querySelector('.log-panel'));
- $('bag-party').append(document.querySelector('.lead-strip'),$('party-verification'),$('preview'),$('switch-panel'));
+ $('bag-rules').append(document.querySelector('.lead-strip'),$('party-verification'));$('bag-party').append($('preview'),$('switch-panel'));$('preview').append($('team'));
  $('profile-size').hidden=true;
  const tree=pocket.querySelector('.trainer-tree');
  for(const trainer of [...new Set(content.opponents.map(p=>p.trainer))]){
