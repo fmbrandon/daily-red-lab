@@ -1,4 +1,4 @@
-import {mountSelectionMenus} from './selection.mjs?v=emerald-2';
+import {mountSelectionMenus} from './selection.mjs?v=party-menu-4';
 import {legalActions,journalKey} from './game.mjs';
 import {playEvents,frameState} from './event-player.mjs';
 import {effectRows,weatherFromEvent} from './effects.mjs';
