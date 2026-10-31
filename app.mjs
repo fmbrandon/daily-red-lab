@@ -1,4 +1,4 @@
-import {mountSelectionMenus} from './selection.mjs?v=handheld-6';
+import {mountSelectionMenus} from './selection.mjs?v=options-7';
 import {legalActions,journalKey} from './game.mjs';
 import {playEvents,frameState} from './event-player.mjs';
 import {effectRows,weatherFromEvent} from './effects.mjs';
